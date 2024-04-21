@@ -7,6 +7,7 @@ RUN groupadd -r nonroot && useradd -r -g nonroot -d /home/nonroot/devika -s /bin
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
+ENV TOKENIZERS_PARALLELISM false
 
 # setting up python3
 RUN apt-get update && apt-get upgrade -y

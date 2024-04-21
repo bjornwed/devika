@@ -2,12 +2,29 @@ version: "3.9"
 
 services:
   ollama-service:
-    image: ollama/ollama:latest
+    build: 
+      context: .
+      dockerfile: ollama.dockerfile
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_MODELS=${OLLAMA_MODELS}
+    volumes:
+      - ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [ gpu ]
+              count: 1
     expose:
       - 11434
     ports:
       - 11434:11434
+    
     healthcheck:
+      # base ollama does not include curl, needs to be rebuilt
       test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
       interval: 5s
       timeout: 30s
@@ -59,3 +76,5 @@ networks:
 
 volumes:
   devika-backend-dbstore:
+  ollama:
+    external: true
