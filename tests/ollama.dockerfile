@@ -1,4 +1,5 @@
 FROM ollama/ollama:latest
+# install curl for health checks
 RUN apt-get install -y curl
 
 COPY ./run-ollama.sh /tmp/run-ollama.sh
