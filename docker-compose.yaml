@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ollama-service:
     image: ollama/ollama:latest
@@ -35,9 +33,11 @@ services:
       - devika-subnetwork
 
   devika-backend-engine:
+    image: backend
     build:
       context: .
-      dockerfile: devika.dockerfile
+      dockerfile: base.dockerfile
+      target: engine
     depends_on:
       - ollama-service
     expose:
@@ -45,6 +45,7 @@ services:
     ports:
       - 1337:1337
     environment:
+      # ollama will be accessible on the internal subnetwork using hostname "ollama-service"
       - OLLAMA_HOST=http://ollama-service:11434
     healthcheck:
       test: "${DOCKER_HEALTHCHECK_TEST:-curl http://localhost:1337/}"
@@ -59,9 +60,11 @@ services:
       - devika-subnetwork
 
   devika-frontend-app:
+    image: frontend
     build:
       context: .
-      dockerfile: app.dockerfile
+      dockerfile: base.dockerfile
+      target: app
       args:
         - VITE_API_BASE_URL=http://127.0.0.1:1337
     depends_on:
