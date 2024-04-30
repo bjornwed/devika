@@ -16,6 +16,7 @@
 - [System Architecture](#system-architecture)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
+- [Run using Docker](#run-using-docker)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Under The Hood](#under-the-hood)
@@ -135,6 +136,57 @@ To install Devika, follow these steps:
    bun run dev
    ```
 8. Access the Devika web interface by opening a browser and navigating to `http://127.0.0.1:3000`.
+
+## Run using Docker
+1. Make sure to review the `docker-compose.yaml` file and `base.dockerfile` before launching docker compose. [!NOTE]
+1. Create an `.env` file in the root-folder and add the following
+   ```
+   # set to /bin/true in development to prevent health check outputs in the terminal
+   DOCKER_HEALTHCHECK_TEST='/bin/true'
+   # specifying the folder to store ollama models
+   OLLAMA_MODELS='/root/.ollama/models'
+   ```
+
+3. Run the following to build the containers:
+   ```
+   docker compose build
+   ```
+   and then start using
+   ```
+   docker compose up
+   ```
+### docker-compose.yaml file
+The docker-compose file will define the following services:
+- ollama-service 
+- devika-backend-engine
+- devika-frontend-app
+
+All services will communicate using an internal network:
+- devika-subnetwork
+
+Two data volumes will be used to persist data
+- devika-backend-data
+- ollama
+
+The volumes will be mounted in the following locations in the containers
+- devika-backend-engine: /home/nonroot
+- ollama: /root/.ollama
+
+[!NOTE]The above data volumes needs to be created before deploying containers. <br>
+Run the following to create volumes in Docker:
+   ```
+   docker create volume devika-backend-data
+   docker create volume ollama
+   ```
+devika-backend-engine will communicate with ollama using the following url:
+   ```
+   http://ollama-service:11434
+   ```
+`ollama-service` will be the hostname for the ollama service running on the internal network ´devika-subnetwork`
+
+### base.dockerfile
+
+
 
 ## Getting Started
 

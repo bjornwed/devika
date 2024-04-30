@@ -45,7 +45,7 @@ services:
     ports:
       - 1337:1337
     environment:
-      # ollama will be accessible on the internal subnetwork using hostname "ollama-service"
+      # ollama will be accessible on the internal subnetwork using hostname  "ollama-service"
       - OLLAMA_HOST=http://ollama-service:11434
     healthcheck:
       test: "${DOCKER_HEALTHCHECK_TEST:-curl http://localhost:1337/}"
@@ -55,7 +55,10 @@ services:
       start_period: 30s
     volumes:
       # persist the whole devika folder, including db/projects etc
-      - devika-backend-data:/home/nonroot/devika
+      - devika-backend-data:/home/nonroot
+      # use separate volume for project output
+      # volume created as bind mount for easy access in VS Code on Windows
+      - devika-projects:/home/nonroot/data/projects
     networks:
       - devika-subnetwork
 
@@ -81,5 +84,8 @@ networks:
 
 volumes:
   devika-backend-data:
+    external: true
+  devika-projects:
+    external: true
   ollama:
     external: true
