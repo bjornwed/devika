@@ -7,6 +7,7 @@ from typing import List, Dict, Union
 from src.config import Config
 from src.llm import LLM
 from src.state import AgentState
+from src.services.utils import retry_wrapper
 
 PROMPT = open("src/agents/patcher/prompt.jinja2", "r").read().strip()
 
@@ -69,15 +70,14 @@ class Patcher:
         project_name = project_name.lower().replace(" ", "-")
 
         for file in response:
-            file_path = f"{self.project_dir}/{project_name}/{file['file']}"
-            file_path_dir = file_path[:file_path.rfind("/")]
+            file_path = os.path.join(self.project_dir, project_name, file['file'])
+            file_path_dir = os.path.dirname(file_path)
             os.makedirs(file_path_dir, exist_ok=True)
-
-            with open(file_path, "w") as f:
+    
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(file["code"])
     
         return file_path_dir
-
     def get_project_path(self, project_name: str):
         project_name = project_name.lower().replace(" ", "-")
         return f"{self.project_dir}/{project_name}"
@@ -99,6 +99,7 @@ class Patcher:
             AgentState().add_to_current_state(project_name, new_state)
             time.sleep(1)
 
+    @retry_wrapper
     def execute(
         self,
         conversation: str,
@@ -119,16 +120,8 @@ class Patcher:
         
         valid_response = self.validate_response(response)
         
-        while not valid_response:
-            print("Invalid response from the model, trying again...")
-            return self.execute(
-                conversation,
-                code_markdown,
-                commands,
-                error,
-                system_os,
-                project_name
-            )
+        if not valid_response:
+            return False
         
         self.emulate_code_writing(valid_response, project_name)
 
